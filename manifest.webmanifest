@@ -1,0 +1,17 @@
+{
+  "name": "QuickWeather",
+  "short_name": "QuickWeather",
+  "description": "A swipe-first weather PWA with saved cities and quick forecast views.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#142033",
+  "theme_color": "#142033",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

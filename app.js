@@ -530,6 +530,7 @@ function bindEvents() {
         openModal(els.searchModal);
         els.citySearchInput.focus();
       }
+      if (action === "refresh-page") window.location.reload();
       if (action === "toggle-units") {
         setState((draft) => {
           draft.units = draft.units === "celsius" ? "fahrenheit" : "celsius";

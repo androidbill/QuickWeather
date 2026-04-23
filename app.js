@@ -51,13 +51,25 @@ const els = {
   unitsMenuBtn: document.getElementById("units-menu-btn"),
   currentIcon: document.getElementById("current-icon"),
   currentTemp: document.getElementById("current-temp"),
+  heroKicker: document.getElementById("hero-kicker"),
+  heroHighLow: document.getElementById("hero-high-low"),
   currentCondition: document.getElementById("current-condition"),
+  heroSummary: document.getElementById("hero-summary"),
+  precipChip: document.getElementById("precip-chip"),
+  cloudChip: document.getElementById("cloud-chip"),
+  updatedChip: document.getElementById("updated-chip"),
   feelsLike: document.getElementById("feels-like"),
   windSpeed: document.getElementById("wind-speed"),
   humidity: document.getElementById("humidity"),
   uvIndex: document.getElementById("uv-index"),
   sunrise: document.getElementById("sunrise"),
   sunset: document.getElementById("sunset"),
+  visibility: document.getElementById("visibility"),
+  pressure: document.getElementById("pressure"),
+  windDirection: document.getElementById("wind-direction"),
+  windGusts: document.getElementById("wind-gusts"),
+  precipitation: document.getElementById("precipitation"),
+  cloudCover: document.getElementById("cloud-cover"),
   hourlyForecast: document.getElementById("hourly-forecast"),
   dailyForecast: document.getElementById("daily-forecast"),
   statusBanner: document.getElementById("status-banner"),
@@ -156,11 +168,29 @@ function tempUnitSymbol() {
 }
 
 function formatTemperature(value) {
+  if (value == null || Number.isNaN(Number(value))) return "--";
   return `${Math.round(value)}${tempUnitSymbol()}`;
 }
 
 function formatWind(value) {
+  if (value == null || Number.isNaN(Number(value))) return "--";
   return `${Math.round(value)} km/h`;
+}
+
+function formatDistanceMeters(value) {
+  if (value == null || Number.isNaN(Number(value))) return "--";
+  const km = Number(value) / 1000;
+  return `${km.toFixed(km >= 10 ? 0 : 1)} km`;
+}
+
+function formatPressure(value) {
+  if (value == null || Number.isNaN(Number(value))) return "--";
+  return `${Math.round(value)} hPa`;
+}
+
+function formatPrecipitation(value) {
+  if (value == null || Number.isNaN(Number(value))) return "--";
+  return `${Number(value).toFixed(value >= 10 ? 0 : 1)} mm`;
 }
 
 function formatTime(iso, timezone) {
@@ -193,6 +223,53 @@ function formatHourLabel(iso, timezone, isFirst) {
   return `${displayHour}${suffix}`;
 }
 
+function formatUpdatedTime(iso) {
+  const timePart = String(iso).split("T")[1] || "";
+  const [hourText = "0", minute = "00"] = timePart.split(":");
+  const hour = Number(hourText);
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minute} ${suffix}`;
+}
+
+function compassDirection(degrees) {
+  if (degrees == null || Number.isNaN(Number(degrees))) return "--";
+  const dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  return dirs[Math.round(Number(degrees) / 45) % 8];
+}
+
+function skyMode(code, isDay) {
+  if (!isDay) return "night";
+  if ([95, 96, 99].includes(code)) return "storm";
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return "snow";
+  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "rain";
+  if ([1, 2, 3, 45, 48].includes(code)) return "cloud";
+  return "clear";
+}
+
+function themeChromeColor(theme, sky) {
+  if (theme === "light") return "#eef5ff";
+  const map = {
+    clear: "#1b4270",
+    cloud: "#233552",
+    rain: "#16263b",
+    snow: "#243d61",
+    storm: "#171f38",
+    night: "#101b34"
+  };
+  return map[sky] || "#142033";
+}
+
+function buildHeroSummary(current, daily) {
+  const bits = [];
+  if (current.wind_speed_10m != null) bits.push(`Breezes at ${formatWind(current.wind_speed_10m)}`);
+  if (current.relative_humidity_2m != null) bits.push(`${Math.round(current.relative_humidity_2m)}% humidity`);
+  if (daily.precipitation_probability_max?.[0] != null) {
+    bits.push(`${Math.round(daily.precipitation_probability_max[0])}% chance of precipitation`);
+  }
+  return bits.join(" • ");
+}
+
 function openModal(modal) {
   els.modalBackdrop.classList.remove("hidden");
   modal.classList.remove("hidden");
@@ -222,22 +299,35 @@ function renderShell() {
   els.body.dataset.theme = state.theme;
   els.themeToggleBtn.textContent = themeIcon(state.theme);
   els.unitsMenuBtn.textContent = unitLabel();
-  els.themeColorMeta.setAttribute("content", state.theme === "dark" ? "#142033" : "#eef4fb");
 
   const activeCity = getActiveCity();
   els.cityName.textContent = activeCity ? activeCity.name : "Loading...";
   els.defaultStar.classList.toggle("is-default", Boolean(activeCity && activeCity.id === state.defaultCityId));
 
   if (!activeCity?.weather) {
+    els.body.dataset.sky = "cloud";
+    els.themeColorMeta.setAttribute("content", themeChromeColor(state.theme, "cloud"));
     els.currentIcon.innerHTML = weatherIconSvg(2, true);
+    els.heroKicker.textContent = "Weather now";
     els.currentTemp.textContent = "--°";
+    els.heroHighLow.textContent = "H --  L --";
     els.currentCondition.textContent = activeCity ? "Loading weather..." : "Finding your city...";
+    els.heroSummary.textContent = "Getting current conditions and forecast...";
+    els.precipChip.textContent = "Precip --";
+    els.cloudChip.textContent = "Clouds --";
+    els.updatedChip.textContent = "Updated --";
     els.feelsLike.textContent = "--";
     els.windSpeed.textContent = "--";
     els.humidity.textContent = "--";
     els.uvIndex.textContent = "--";
     els.sunrise.textContent = "--";
     els.sunset.textContent = "--";
+    els.visibility.textContent = "--";
+    els.pressure.textContent = "--";
+    els.windDirection.textContent = "--";
+    els.windGusts.textContent = "--";
+    els.precipitation.textContent = "--";
+    els.cloudCover.textContent = "--";
     els.hourlyForecast.innerHTML = "";
     els.dailyForecast.innerHTML = "";
     return;
@@ -247,24 +337,54 @@ function renderShell() {
   const current = weather.current;
   const timezone = weather.timezone;
   const todayIndex = 0;
+  const dailyTime = Array.isArray(weather.daily?.time) ? weather.daily.time : [];
+  const dailyCodes = Array.isArray(weather.daily?.weather_code) ? weather.daily.weather_code : [];
+  const dailyHighs = Array.isArray(weather.daily?.temperature_2m_max) ? weather.daily.temperature_2m_max : [];
+  const dailyLows = Array.isArray(weather.daily?.temperature_2m_min) ? weather.daily.temperature_2m_min : [];
+  const dailySunrise = Array.isArray(weather.daily?.sunrise) ? weather.daily.sunrise : [];
+  const dailySunset = Array.isArray(weather.daily?.sunset) ? weather.daily.sunset : [];
+  const dailyPrecipMax = Array.isArray(weather.daily?.precipitation_probability_max) ? weather.daily.precipitation_probability_max : [];
+  const hourlyTime = Array.isArray(weather.hourly?.time) ? weather.hourly.time : [];
+  const hourlyTemps = Array.isArray(weather.hourly?.temperature_2m) ? weather.hourly.temperature_2m : [];
+  const hourlyWinds = Array.isArray(weather.hourly?.wind_speed_10m) ? weather.hourly.wind_speed_10m : [];
+  const hourlyCodes = Array.isArray(weather.hourly?.weather_code) ? weather.hourly.weather_code : [];
+  const hourlyPrecip = Array.isArray(weather.hourly?.precipitation_probability) ? weather.hourly.precipitation_probability : [];
+  const precipitationChance = dailyPrecipMax[todayIndex];
+  const currentSky = skyMode(current.weather_code, Boolean(current.is_day));
+
+  els.body.dataset.sky = currentSky;
+  els.themeColorMeta.setAttribute("content", themeChromeColor(state.theme, currentSky));
 
   els.currentIcon.innerHTML = weatherIconSvg(current.weather_code, Boolean(current.is_day));
+  els.heroKicker.textContent = current.is_day ? "Today" : "Tonight";
   els.currentTemp.textContent = formatTemperature(current.temperature_2m);
+  els.heroHighLow.textContent = `H ${formatTemperature(dailyHighs[todayIndex])}  L ${formatTemperature(dailyLows[todayIndex])}`;
   els.currentCondition.textContent = weatherLabel(current.weather_code);
+  els.heroSummary.textContent = buildHeroSummary(current, { precipitation_probability_max: dailyPrecipMax });
+  els.precipChip.textContent = `Precip ${precipitationChance != null ? `${Math.round(precipitationChance)}%` : "--"}`;
+  els.cloudChip.textContent = `Clouds ${current.cloud_cover != null ? `${Math.round(current.cloud_cover)}%` : "--"}`;
+  els.updatedChip.textContent = `Updated ${formatUpdatedTime(current.time)}`;
   els.feelsLike.textContent = formatTemperature(current.apparent_temperature);
   els.windSpeed.textContent = formatWind(current.wind_speed_10m);
   els.humidity.textContent = `${Math.round(current.relative_humidity_2m)}%`;
   els.uvIndex.textContent = Number(current.uv_index || 0).toFixed(2).replace(/\.00$/, "");
-  els.sunrise.textContent = formatTime(weather.daily.sunrise[todayIndex], timezone);
-  els.sunset.textContent = formatTime(weather.daily.sunset[todayIndex], timezone);
+  els.sunrise.textContent = formatTime(dailySunrise[todayIndex], timezone);
+  els.sunset.textContent = formatTime(dailySunset[todayIndex], timezone);
+  els.visibility.textContent = formatDistanceMeters(current.visibility);
+  els.pressure.textContent = formatPressure(current.surface_pressure);
+  els.windDirection.textContent = compassDirection(current.wind_direction_10m);
+  els.windGusts.textContent = formatWind(current.wind_gusts_10m);
+  els.precipitation.textContent = formatPrecipitation(current.precipitation);
+  els.cloudCover.textContent = current.cloud_cover != null ? `${Math.round(current.cloud_cover)}%` : "--";
 
-  const currentHourIndex = weather.hourly.time.findIndex((time) => time === current.time);
+  const currentHourIndex = hourlyTime.findIndex((time) => time === current.time);
   const startIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
-  const hourlySlice = weather.hourly.time.slice(startIndex, startIndex + 24).map((time, index) => ({
+  const hourlySlice = hourlyTime.slice(startIndex, startIndex + 24).map((time, index) => ({
     time,
-    temperature: weather.hourly.temperature_2m[startIndex + index],
-    wind: weather.hourly.wind_speed_10m[startIndex + index],
-    code: weather.hourly.weather_code[startIndex + index]
+    temperature: hourlyTemps[startIndex + index],
+    wind: hourlyWinds[startIndex + index],
+    code: hourlyCodes[startIndex + index],
+    precipitationProbability: hourlyPrecip[startIndex + index]
   }));
 
   els.hourlyForecast.innerHTML = hourlySlice.map((hour, index) => `
@@ -273,14 +393,16 @@ function renderShell() {
       <div class="forecast-icon">${weatherIconSvg(hour.code, true)}</div>
       <div class="forecast-temp">${formatTemperature(hour.temperature)}</div>
       <div class="forecast-sub">⇆ ${formatWind(hour.wind)}</div>
+      <div class="forecast-note">${hour.precipitationProbability != null ? `${Math.round(hour.precipitationProbability)}% precip` : ""}</div>
     </article>
   `).join("");
 
-  els.dailyForecast.innerHTML = weather.daily.time.slice(0, 14).map((date, index) => `
+  els.dailyForecast.innerHTML = dailyTime.slice(0, 14).map((date, index) => `
     <article class="forecast-card daily-card">
       <div class="forecast-label">${formatDay(date, timezone)}</div>
-      <div class="forecast-icon">${weatherIconSvg(weather.daily.weather_code[index], true)}</div>
-      <div class="forecast-range"><span class="range-high">${formatTemperature(weather.daily.temperature_2m_max[index])}</span> <span class="range-low">${formatTemperature(weather.daily.temperature_2m_min[index])}</span></div>
+      <div class="forecast-icon">${weatherIconSvg(dailyCodes[index], true)}</div>
+      <div class="forecast-range"><span class="range-high">${formatTemperature(dailyHighs[index])}</span> <span class="range-low">${formatTemperature(dailyLows[index])}</span></div>
+      <div class="forecast-note">${dailyPrecipMax[index] != null ? `${Math.round(dailyPrecipMax[index])}% precip` : ""}</div>
     </article>
   `).join("");
 }
@@ -345,9 +467,9 @@ async function fetchWeatherForCity(city) {
   const params = new URLSearchParams({
     latitude: String(city.latitude),
     longitude: String(city.longitude),
-    current: "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,uv_index,is_day,weather_code",
-    hourly: "temperature_2m,weather_code,wind_speed_10m",
-    daily: "weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset",
+    current: "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,is_day,weather_code,precipitation,cloud_cover,visibility,surface_pressure",
+    hourly: "temperature_2m,weather_code,wind_speed_10m,precipitation_probability",
+    daily: "weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max",
     temperature_unit: state.units,
     wind_speed_unit: "kmh",
     timezone: "auto",

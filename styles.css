@@ -59,7 +59,7 @@ button {
   height: 100dvh;
   max-width: 420px;
   margin: 0 auto;
-  padding: 10px 12px 14px;
+  padding: 8px 10px 10px;
   position: relative;
   overflow: hidden;
 }
@@ -68,8 +68,8 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
 .city-title-group {
@@ -81,7 +81,7 @@ button {
 }
 
 .city-title-text {
-  font-size: 1.75rem;
+  font-size: 1.55rem;
   font-weight: 800;
   white-space: nowrap;
   overflow: hidden;
@@ -106,8 +106,8 @@ button {
 }
 
 .icon-button {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 999px;
   background: transparent;
   color: var(--text);
@@ -146,15 +146,16 @@ button {
 .screen {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-height: 0;
+  gap: 8px;
+  min-height: 100%;
 }
 
 .top-swipe-zone {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   touch-action: pan-x;
+  flex: 0 0 auto;
 }
 
 .hero {
@@ -163,9 +164,9 @@ button {
 }
 
 .hero-icon {
-  width: 62px;
-  height: 62px;
-  margin: 0 auto 4px;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 2px;
 }
 
 .hero-icon svg {
@@ -185,27 +186,27 @@ button {
 }
 
 .hero-temp {
-  font-size: clamp(3.3rem, 11vw, 4.3rem);
+  font-size: clamp(2.9rem, 10vw, 3.8rem);
   line-height: 0.95;
   font-weight: 300;
 }
 
 .hero-condition {
-  margin-top: 4px;
-  font-size: 1.25rem;
+  margin-top: 2px;
+  font-size: 1.05rem;
 }
 
 .stats-card {
   background: linear-gradient(180deg, var(--panel-soft), var(--panel));
-  border-radius: 20px;
-  padding: 12px 10px;
+  border-radius: 18px;
+  padding: 10px 8px;
   box-shadow: var(--shadow);
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px 6px;
+  gap: 8px 4px;
 }
 
 .metric {
@@ -214,31 +215,35 @@ button {
 
 .metric-icon {
   color: var(--accent);
-  font-size: 1.05rem;
-  margin-bottom: 2px;
+  font-size: 0.95rem;
+  margin-bottom: 1px;
 }
 
 .metric-label {
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   color: var(--dim);
 }
 
 .metric-value {
-  margin-top: 2px;
+  margin-top: 1px;
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: 0.84rem;
+}
+
+.forecast-section {
+  min-height: 0;
 }
 
 .forecast-section h2 {
-  margin: 0 0 6px;
-  font-size: 1.18rem;
+  margin: 0 0 4px;
+  font-size: 1rem;
 }
 
 .forecast-row {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding-bottom: 1px;
   scroll-snap-type: x proximity;
 }
 
@@ -247,29 +252,34 @@ button {
   display: none;
 }
 
+#hourly-forecast,
+#daily-forecast {
+  max-height: 114px;
+}
+
 .forecast-card {
-  min-width: 82px;
+  min-width: 72px;
   background: var(--panel-card);
-  border-radius: 16px;
-  padding: 10px 8px 8px;
+  border-radius: 14px;
+  padding: 8px 6px 6px;
   text-align: center;
   box-shadow: var(--shadow);
   scroll-snap-align: start;
 }
 
 .daily-card {
-  min-width: 88px;
+  min-width: 78px;
 }
 
 .forecast-label {
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   color: var(--muted);
 }
 
 .forecast-icon {
-  width: 28px;
-  height: 28px;
-  margin: 8px auto 6px;
+  width: 24px;
+  height: 24px;
+  margin: 6px auto 4px;
 }
 
 .forecast-icon svg {
@@ -284,19 +294,19 @@ button {
 
 .forecast-temp {
   font-weight: 800;
-  font-size: 1.2rem;
+  font-size: 1rem;
 }
 
 .forecast-sub {
-  margin-top: 6px;
+  margin-top: 4px;
   color: var(--dim);
-  font-size: 0.76rem;
+  font-size: 0.66rem;
 }
 
 .forecast-range {
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   color: var(--muted);
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
 .status-banner {
@@ -442,11 +452,11 @@ button {
   }
 
   .city-title-text {
-    font-size: 1.45rem;
+    font-size: 1.3rem;
   }
 
   .forecast-section h2 {
-    font-size: 1.05rem;
+    font-size: 0.94rem;
   }
 
   .search-form {

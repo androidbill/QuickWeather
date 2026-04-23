@@ -150,6 +150,13 @@ button {
   min-height: 0;
 }
 
+.top-swipe-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  touch-action: pan-x;
+}
+
 .hero {
   text-align: center;
   padding-top: 0;

@@ -448,15 +448,100 @@ button {
 
 @media (max-width: 420px) {
   .app-shell {
-    padding-inline: 10px;
+    padding: 6px 8px 8px;
   }
 
   .city-title-text {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
+  }
+
+  .topbar {
+    margin-bottom: 2px;
+  }
+
+  .top-swipe-zone,
+  .screen {
+    gap: 6px;
+  }
+
+  .hero-icon {
+    width: 46px;
+    height: 46px;
+    margin-bottom: 0;
+  }
+
+  .hero-temp {
+    font-size: clamp(2.45rem, 9vw, 3.1rem);
+  }
+
+  .hero-condition {
+    font-size: 0.92rem;
+    margin-top: 1px;
+  }
+
+  .stats-card {
+    padding: 8px 6px;
+    border-radius: 16px;
+  }
+
+  .stats-grid {
+    gap: 6px 3px;
+  }
+
+  .metric-icon {
+    font-size: 0.84rem;
+  }
+
+  .metric-label {
+    font-size: 0.62rem;
+  }
+
+  .metric-value {
+    font-size: 0.76rem;
   }
 
   .forecast-section h2 {
-    font-size: 0.94rem;
+    font-size: 0.88rem;
+    margin-bottom: 3px;
+  }
+
+  #hourly-forecast,
+  #daily-forecast {
+    max-height: 98px;
+  }
+
+  .forecast-row {
+    gap: 5px;
+  }
+
+  .forecast-card {
+    min-width: 64px;
+    padding: 6px 5px 5px;
+    border-radius: 12px;
+  }
+
+  .daily-card {
+    min-width: 68px;
+  }
+
+  .forecast-label {
+    font-size: 0.6rem;
+  }
+
+  .forecast-icon {
+    width: 20px;
+    height: 20px;
+    margin: 4px auto 3px;
+  }
+
+  .forecast-temp {
+    font-size: 0.88rem;
+  }
+
+  .forecast-sub,
+  .forecast-range {
+    font-size: 0.58rem;
+    margin-top: 2px;
   }
 
   .search-form {
@@ -476,5 +561,84 @@ button {
   .list-item .danger-btn {
     min-height: 42px;
     padding: 0 14px;
+  }
+}
+
+@media (max-height: 860px) and (max-width: 420px) {
+  .app-shell {
+    padding-top: 4px;
+  }
+
+  .city-title-text {
+    font-size: 1.08rem;
+  }
+
+  .icon-button {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+  }
+
+  .star-btn {
+    font-size: 1rem;
+  }
+
+  .hero-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .hero-temp {
+    font-size: 2.15rem;
+  }
+
+  .hero-condition {
+    font-size: 0.84rem;
+  }
+
+  .stats-card {
+    padding: 7px 5px;
+  }
+
+  .stats-grid {
+    gap: 5px 2px;
+  }
+
+  .metric-label {
+    font-size: 0.58rem;
+  }
+
+  .metric-value {
+    font-size: 0.7rem;
+  }
+
+  #hourly-forecast,
+  #daily-forecast {
+    max-height: 88px;
+  }
+
+  .forecast-card {
+    min-width: 60px;
+    padding: 5px 4px 4px;
+  }
+
+  .daily-card {
+    min-width: 64px;
+  }
+
+  .forecast-icon {
+    width: 18px;
+    height: 18px;
+    margin: 3px auto 2px;
+  }
+
+  .forecast-temp {
+    font-size: 0.8rem;
+  }
+
+  .forecast-sub,
+  .forecast-range,
+  .forecast-label {
+    font-size: 0.54rem;
   }
 }

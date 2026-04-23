@@ -75,6 +75,7 @@ const els = {
 let state = loadState();
 let touchStartX = 0;
 let touchStartY = 0;
+let touchStartTime = 0;
 
 function defaultState() {
   return {
@@ -362,7 +363,7 @@ async function fetchWeatherForCity(city) {
     forecast_days: "14"
   });
 
-  const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`);
+  const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`, { cache: "no-store" });
   if (!response.ok) throw new Error("Unable to load weather right now.");
   return response.json();
 }
@@ -447,7 +448,7 @@ async function reverseGeocode(lat, lon) {
     addressdetails: "1"
   });
 
-  const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`);
+  const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, { cache: "no-store" });
   if (!response.ok) throw new Error("Unable to detect city name.");
   const data = await response.json();
   const address = data.address || {};
@@ -468,7 +469,7 @@ async function searchCities(query) {
     language: "en",
     format: "json"
   });
-  const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?${params.toString()}`);
+  const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?${params.toString()}`, { cache: "no-store" });
   if (!response.ok) throw new Error("Search failed.");
   const data = await response.json();
   return (data.results || []).map((result) => ({
@@ -528,12 +529,25 @@ async function forceRefreshPage() {
     // Ignore refresh cleanup failures and still reload.
   }
 
-  window.location.href = `./index.html?refresh=${Date.now()}`;
+  window.location.replace(`./index.html?refresh=${Date.now()}`);
 }
 
-function registerServiceWorker() {
+async function disableRuntimeCaching() {
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).catch(() => {});
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+    } catch {
+      // Ignore cleanup failures.
+    }
+  }
+  if ("caches" in window) {
+    try {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map((name) => caches.delete(name)));
+    } catch {
+      // Ignore cleanup failures.
+    }
   }
 }
 
@@ -622,6 +636,7 @@ function bindEvents() {
       const touch = event.changedTouches[0];
       touchStartX = touch.clientX;
       touchStartY = touch.clientY;
+      touchStartTime = Date.now();
     }
   }, { passive: true });
 
@@ -630,6 +645,11 @@ function bindEvents() {
     const touch = event.changedTouches[0];
     const deltaX = touch.clientX - touchStartX;
     const deltaY = touch.clientY - touchStartY;
+    const elapsed = Date.now() - touchStartTime;
+    if (deltaY > 70 && deltaY > Math.abs(deltaX) * 1.2 && elapsed < 900) {
+      forceRefreshPage();
+      return;
+    }
     if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY) * 1.2) return;
     swipeCity(deltaX < 0 ? "left" : "right");
   }, { passive: true });
@@ -638,5 +658,5 @@ function bindEvents() {
 bindEvents();
 renderSearchResults();
 renderShell();
+disableRuntimeCaching();
 setupInitialCity();
-registerServiceWorker();

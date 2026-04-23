@@ -51,25 +51,13 @@ const els = {
   unitsMenuBtn: document.getElementById("units-menu-btn"),
   currentIcon: document.getElementById("current-icon"),
   currentTemp: document.getElementById("current-temp"),
-  heroKicker: document.getElementById("hero-kicker"),
-  heroHighLow: document.getElementById("hero-high-low"),
   currentCondition: document.getElementById("current-condition"),
-  heroSummary: document.getElementById("hero-summary"),
-  precipChip: document.getElementById("precip-chip"),
-  cloudChip: document.getElementById("cloud-chip"),
-  updatedChip: document.getElementById("updated-chip"),
   feelsLike: document.getElementById("feels-like"),
   windSpeed: document.getElementById("wind-speed"),
   humidity: document.getElementById("humidity"),
   uvIndex: document.getElementById("uv-index"),
   sunrise: document.getElementById("sunrise"),
   sunset: document.getElementById("sunset"),
-  visibility: document.getElementById("visibility"),
-  pressure: document.getElementById("pressure"),
-  windDirection: document.getElementById("wind-direction"),
-  windGusts: document.getElementById("wind-gusts"),
-  precipitation: document.getElementById("precipitation"),
-  cloudCover: document.getElementById("cloud-cover"),
   hourlyForecast: document.getElementById("hourly-forecast"),
   dailyForecast: document.getElementById("daily-forecast"),
   statusBanner: document.getElementById("status-banner"),
@@ -88,6 +76,8 @@ let state = loadState();
 let touchStartX = 0;
 let touchStartY = 0;
 let touchStartTime = 0;
+const pendingWeatherRefresh = new Set();
+const weatherErrors = new Map();
 
 function defaultState() {
   return {
@@ -142,6 +132,10 @@ function normalizeCity(city) {
     timezone: city.timezone || "auto",
     weather: city.weather || null
   };
+}
+
+function hasValidCoordinates(city) {
+  return Number.isFinite(Number(city?.latitude)) && Number.isFinite(Number(city?.longitude));
 }
 
 function themeIcon(theme) {
@@ -284,6 +278,48 @@ function buildHeroSummary(current, daily) {
   return bits.join(" • ");
 }
 
+function normalizeWeatherResponse(data) {
+  if (data?.current && data?.hourly && data?.daily) return data;
+
+  const currentWeather = data?.current_weather || {};
+  const hourly = data?.hourly || {};
+  const daily = data?.daily || {};
+  const currentTime = currentWeather.time || pickArray(hourly, ["time"])[0] || "";
+  const currentIndex = pickArray(hourly, ["time"]).findIndex((time) => time === currentTime);
+  const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+
+  return {
+    ...data,
+    current: {
+      time: currentTime,
+      temperature_2m: currentWeather.temperature,
+      apparent_temperature: pickArray(hourly, ["apparent_temperature"])[safeIndex],
+      relative_humidity_2m: pickArray(hourly, ["relativehumidity_2m", "relative_humidity_2m"])[safeIndex],
+      wind_speed_10m: currentWeather.windspeed ?? pickArray(hourly, ["windspeed_10m", "wind_speed_10m"])[safeIndex],
+      wind_direction_10m: currentWeather.winddirection,
+      wind_gusts_10m: pickArray(hourly, ["windgusts_10m", "wind_gusts_10m"])[safeIndex],
+      uv_index: pickArray(hourly, ["uv_index"])[safeIndex],
+      is_day: currentWeather.is_day,
+      weather_code: currentWeather.weathercode,
+      precipitation: pickArray(hourly, ["precipitation"])[safeIndex],
+      cloud_cover: pickArray(hourly, ["cloudcover", "cloud_cover"])[safeIndex],
+      visibility: pickArray(hourly, ["visibility"])[safeIndex],
+      surface_pressure: pickArray(hourly, ["surface_pressure"])[safeIndex]
+    },
+    hourly: {
+      ...hourly,
+      weather_code: pickArray(hourly, ["weather_code", "weathercode"]),
+      wind_speed_10m: pickArray(hourly, ["wind_speed_10m", "windspeed_10m"]),
+      precipitation_probability: pickArray(hourly, ["precipitation_probability"])
+    },
+    daily: {
+      ...daily,
+      weather_code: pickArray(daily, ["weather_code", "weathercode"]),
+      precipitation_probability_max: pickArray(daily, ["precipitation_probability_max"])
+    }
+  };
+}
+
 function openModal(modal) {
   els.modalBackdrop.classList.remove("hidden");
   modal.classList.remove("hidden");
@@ -315,6 +351,7 @@ function renderShell() {
   els.unitsMenuBtn.textContent = unitLabel();
 
   const activeCity = getActiveCity();
+  const activeError = activeCity ? weatherErrors.get(activeCity.id) : "";
   els.cityName.textContent = activeCity ? activeCity.name : "Loading...";
   els.defaultStar.classList.toggle("is-default", Boolean(activeCity && activeCity.id === state.defaultCityId));
 
@@ -322,28 +359,27 @@ function renderShell() {
     els.body.dataset.sky = "cloud";
     els.themeColorMeta.setAttribute("content", themeChromeColor(state.theme, "cloud"));
     els.currentIcon.innerHTML = weatherIconSvg(2, true);
-    els.heroKicker.textContent = "Weather now";
     els.currentTemp.textContent = "--°";
-    els.heroHighLow.textContent = "H --  L --";
-    els.currentCondition.textContent = activeCity ? "Loading weather..." : "Finding your city...";
-    els.heroSummary.textContent = "Getting current conditions and forecast...";
-    els.precipChip.textContent = "Precip --";
-    els.cloudChip.textContent = "Clouds --";
-    els.updatedChip.textContent = "Updated --";
+    els.currentCondition.textContent = activeCity ? (activeError || "Loading weather...") : "Finding your city...";
     els.feelsLike.textContent = "--";
     els.windSpeed.textContent = "--";
     els.humidity.textContent = "--";
     els.uvIndex.textContent = "--";
     els.sunrise.textContent = "--";
     els.sunset.textContent = "--";
-    els.visibility.textContent = "--";
-    els.pressure.textContent = "--";
-    els.windDirection.textContent = "--";
-    els.windGusts.textContent = "--";
-    els.precipitation.textContent = "--";
-    els.cloudCover.textContent = "--";
     els.hourlyForecast.innerHTML = "";
     els.dailyForecast.innerHTML = "";
+
+    if (activeCity && !activeError && !pendingWeatherRefresh.has(activeCity.id) && !renderShell.refreshQueued) {
+      renderShell.refreshQueued = true;
+      queueMicrotask(async () => {
+        try {
+          await refreshActiveWeather();
+        } finally {
+          renderShell.refreshQueued = false;
+        }
+      });
+    }
     return;
   }
 
@@ -351,14 +387,8 @@ function renderShell() {
     els.body.dataset.sky = "cloud";
     els.themeColorMeta.setAttribute("content", themeChromeColor(state.theme, "cloud"));
     els.currentIcon.innerHTML = weatherIconSvg(2, true);
-    els.heroKicker.textContent = "Refreshing";
     els.currentTemp.textContent = "--°";
-    els.heroHighLow.textContent = "H --  L --";
     els.currentCondition.textContent = "Updating forecast...";
-    els.heroSummary.textContent = "Saved weather data is out of date. Pulling a fresh forecast now.";
-    els.precipChip.textContent = "Precip --";
-    els.cloudChip.textContent = "Clouds --";
-    els.updatedChip.textContent = "Updated --";
     els.feelsLike.textContent = "--";
     els.windSpeed.textContent = "--";
     els.humidity.textContent = "--";
@@ -404,26 +434,14 @@ function renderShell() {
   els.themeColorMeta.setAttribute("content", themeChromeColor(state.theme, currentSky));
 
   els.currentIcon.innerHTML = weatherIconSvg(current.weather_code, Boolean(current.is_day));
-  els.heroKicker.textContent = current.is_day ? "Today" : "Tonight";
   els.currentTemp.textContent = formatTemperature(current.temperature_2m);
-  els.heroHighLow.textContent = `H ${formatTemperature(dailyHighs[todayIndex])}  L ${formatTemperature(dailyLows[todayIndex])}`;
   els.currentCondition.textContent = weatherLabel(current.weather_code);
-  els.heroSummary.textContent = buildHeroSummary(current, { precipitation_probability_max: dailyPrecipMax });
-  els.precipChip.textContent = `Precip ${precipitationChance != null ? `${Math.round(precipitationChance)}%` : "--"}`;
-  els.cloudChip.textContent = `Clouds ${current.cloud_cover != null ? `${Math.round(current.cloud_cover)}%` : "--"}`;
-  els.updatedChip.textContent = `Updated ${formatUpdatedTime(current.time)}`;
   els.feelsLike.textContent = formatTemperature(current.apparent_temperature);
   els.windSpeed.textContent = formatWind(current.wind_speed_10m);
   els.humidity.textContent = `${Math.round(current.relative_humidity_2m)}%`;
   els.uvIndex.textContent = Number(current.uv_index || 0).toFixed(2).replace(/\.00$/, "");
   els.sunrise.textContent = formatTime(dailySunrise[todayIndex], timezone);
   els.sunset.textContent = formatTime(dailySunset[todayIndex], timezone);
-  els.visibility.textContent = formatDistanceMeters(current.visibility);
-  els.pressure.textContent = formatPressure(current.surface_pressure);
-  els.windDirection.textContent = compassDirection(current.wind_direction_10m);
-  els.windGusts.textContent = formatWind(current.wind_gusts_10m);
-  els.precipitation.textContent = formatPrecipitation(current.precipitation);
-  els.cloudCover.textContent = current.cloud_cover != null ? `${Math.round(current.cloud_cover)}%` : "--";
 
   const currentHourIndex = hourlyTime.findIndex((time) => time === current.time);
   const startIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
@@ -512,7 +530,7 @@ function weatherIconSvg(code, isDay) {
 }
 
 async function fetchWeatherForCity(city) {
-  const params = new URLSearchParams({
+  const modernParams = new URLSearchParams({
     latitude: String(city.latitude),
     longitude: String(city.longitude),
     current: "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,is_day,weather_code,precipitation,cloud_cover,visibility,surface_pressure",
@@ -524,23 +542,79 @@ async function fetchWeatherForCity(city) {
     forecast_days: "14"
   });
 
-  const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`, { cache: "no-store" });
-  if (!response.ok) throw new Error("Unable to load weather right now.");
-  return response.json();
+  try {
+    const modernResponse = await fetch(`https://api.open-meteo.com/v1/forecast?${modernParams.toString()}`, { cache: "no-store" });
+    if (!modernResponse.ok) throw new Error("modern fetch failed");
+    const modernData = await modernResponse.json();
+    return normalizeWeatherResponse(modernData);
+  } catch {
+    const legacyParams = new URLSearchParams({
+      latitude: String(city.latitude),
+      longitude: String(city.longitude),
+      current_weather: "true",
+      daily: "weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset",
+      hourly: "temperature_2m,relativehumidity_2m,apparent_temperature,windspeed_10m,uv_index,weathercode",
+      temperature_unit: state.units,
+      windspeed_unit: "kmh",
+      timezone: "auto",
+      forecast_days: "14"
+    });
+
+    const legacyResponse = await fetch(`https://api.open-meteo.com/v1/forecast?${legacyParams.toString()}`, { cache: "no-store" });
+    if (!legacyResponse.ok) throw new Error("Unable to load weather right now.");
+    const legacyData = await legacyResponse.json();
+    return normalizeWeatherResponse(legacyData);
+  }
 }
 
 async function refreshActiveWeather() {
   const city = getActiveCity();
   if (!city) return;
 
+  pendingWeatherRefresh.add(city.id);
+  weatherErrors.delete(city.id);
+  renderShell();
+
   try {
-    const weather = await fetchWeatherForCity(city);
+    let resolvedCity = city;
+
+    if (!hasValidCoordinates(resolvedCity)) {
+      const results = await searchCities(resolvedCity.name);
+      const fallbackMatch = results.find((item) => item.name.toLowerCase() === resolvedCity.name.toLowerCase()) || results[0];
+      if (!fallbackMatch) throw new Error(`Unable to locate ${resolvedCity.name}.`);
+
+      setState((draft) => {
+        const target = draft.cities.find((item) => item.id === city.id);
+        if (target) {
+          target.latitude = Number(fallbackMatch.latitude);
+          target.longitude = Number(fallbackMatch.longitude);
+          target.admin1 = fallbackMatch.admin1 || target.admin1;
+          target.country = fallbackMatch.country || target.country;
+          target.timezone = fallbackMatch.timezone || target.timezone;
+        }
+      });
+
+      resolvedCity = getActiveCity() || {
+        ...resolvedCity,
+        latitude: fallbackMatch.latitude,
+        longitude: fallbackMatch.longitude,
+        admin1: fallbackMatch.admin1 || resolvedCity.admin1,
+        country: fallbackMatch.country || resolvedCity.country,
+        timezone: fallbackMatch.timezone || resolvedCity.timezone
+      };
+    }
+
+    const weather = await fetchWeatherForCity(resolvedCity);
     setState((draft) => {
       const target = draft.cities.find((item) => item.id === city.id);
       if (target) target.weather = weather;
     });
   } catch (error) {
+    weatherErrors.set(city.id, error.message || "Weather update failed.");
     setStatus(error.message || "Weather update failed.");
+    renderShell();
+  } finally {
+    pendingWeatherRefresh.delete(city.id);
   }
 }
 

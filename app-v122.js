@@ -330,21 +330,16 @@ function escapeHtml(value) {
 }
 
 function weatherIconSvg(code, isDay) {
-  const sun = `<circle cx="13" cy="13" r="4.6"></circle><path d="M13 2v4M13 20v4M2 13h4M20 13h4M5.2 5.2l2.8 2.8M18 18l2.8 2.8M20.8 5.2L18 8M8 18l-2.8 2.8"></path>`;
-  const moon = `<path d="M16.8 5.2a7.6 7.6 0 1 0 6.1 12.7A8.7 8.7 0 0 1 16.8 5.2Z"></path>`;
-  const cloud = `<path d="M7.8 19H18.5a4.7 4.7 0 0 0 .2-9.4 5.8 5.8 0 0 0-11 1.7A3.8 3.8 0 0 0 7.8 19Z"></path>`;
-  const rain = `${cloud}<path d="M10 22.5l-1.2 2.5M14.5 22.5l-1.2 2.5M19 22.5l-1.2 2.5"></path>`;
-  const snow = `<path d="M13 5v16M5 13h16M7.3 7.3l11.4 11.4M18.7 7.3L7.3 18.7"></path>`;
-  const storm = `${cloud}<path d="M13 21l-2 4h2.8l-1 3 4.2-5.8H14l1-2.2z"></path>`;
+  let icon = "⛈️";
+  if (code === 0) icon = isDay ? "☀️" : "🌙";
+  else if (code <= 3) icon = "⛅";
+  else if (code <= 48) icon = "☁️";
+  else if (code <= 65) icon = "🌧️";
+  else if (code <= 77) icon = "❄️";
+  else if (code <= 82) icon = "🚿";
+  else if (code <= 86) icon = "🌨️";
 
-  let content = cloud;
-  if (code === 0) content = isDay ? sun : moon;
-  else if ([1, 2, 3].includes(code)) content = cloud;
-  else if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) content = rain;
-  else if ([71, 73, 75, 77, 85, 86].includes(code)) content = snow;
-  else if ([95, 96, 99].includes(code)) content = storm;
-
-  return `<svg viewBox="0 0 26 30" aria-hidden="true">${content}</svg>`;
+  return `<span class="weather-emoji" aria-hidden="true">${icon}</span>`;
 }
 
 async function fetchWeatherForCity(city) {

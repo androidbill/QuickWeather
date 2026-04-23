@@ -261,7 +261,6 @@ body[data-theme="light"] .icon-button {
 
 .hero,
 .stats-card,
-.insight-section,
 .forecast-section,
 .modal-card,
 .status-banner {
@@ -381,7 +380,6 @@ body[data-theme="light"] .icon-button {
 }
 
 .stats-card,
-.insight-section,
 .forecast-section {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -427,7 +425,6 @@ body[data-theme="light"] .icon-button {
   line-height: 1.15;
 }
 
-.insight-section,
 .forecast-section {
   padding: 9px;
   min-height: 0;
@@ -441,7 +438,6 @@ body[data-theme="light"] .icon-button {
   letter-spacing: -0.02em;
 }
 
-.insight-row,
 .forecast-row,
 .list-panel {
   display: flex;
@@ -450,44 +446,9 @@ body[data-theme="light"] .icon-button {
   scrollbar-width: none;
 }
 
-.insight-row::-webkit-scrollbar,
 .forecast-row::-webkit-scrollbar,
 .list-panel::-webkit-scrollbar {
   display: none;
-}
-
-.insight-row {
-  margin-top: 8px;
-  padding-bottom: 2px;
-}
-
-.insight-card {
-  min-width: 96px;
-  padding: 9px 9px 8px;
-  border-radius: 16px;
-  background: var(--panel-card);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-md);
-}
-
-.insight-label {
-  color: var(--dim);
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.insight-value {
-  margin-top: 6px;
-  font-size: 0.9rem;
-  font-weight: 800;
-}
-
-.insight-sub {
-  margin-top: 5px;
-  color: var(--muted);
-  font-size: 0.58rem;
-  line-height: 1.2;
 }
 
 .forecast-row {

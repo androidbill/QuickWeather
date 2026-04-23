@@ -238,6 +238,20 @@ function compassDirection(degrees) {
   return dirs[Math.round(Number(degrees) / 45) % 8];
 }
 
+function pickArray(source, keys) {
+  for (const key of keys) {
+    const value = source?.[key];
+    if (Array.isArray(value)) return value;
+  }
+  return [];
+}
+
+function hasRenderableForecast(weather) {
+  const hourlyTime = pickArray(weather?.hourly, ["time"]);
+  const dailyTime = pickArray(weather?.daily, ["time"]);
+  return hourlyTime.length > 0 && dailyTime.length > 0;
+}
+
 function skyMode(code, isDay) {
   if (!isDay) return "night";
   if ([95, 96, 99].includes(code)) return "storm";
@@ -333,22 +347,56 @@ function renderShell() {
     return;
   }
 
+  if (!hasRenderableForecast(activeCity.weather)) {
+    els.body.dataset.sky = "cloud";
+    els.themeColorMeta.setAttribute("content", themeChromeColor(state.theme, "cloud"));
+    els.currentIcon.innerHTML = weatherIconSvg(2, true);
+    els.heroKicker.textContent = "Refreshing";
+    els.currentTemp.textContent = "--°";
+    els.heroHighLow.textContent = "H --  L --";
+    els.currentCondition.textContent = "Updating forecast...";
+    els.heroSummary.textContent = "Saved weather data is out of date. Pulling a fresh forecast now.";
+    els.precipChip.textContent = "Precip --";
+    els.cloudChip.textContent = "Clouds --";
+    els.updatedChip.textContent = "Updated --";
+    els.feelsLike.textContent = "--";
+    els.windSpeed.textContent = "--";
+    els.humidity.textContent = "--";
+    els.uvIndex.textContent = "--";
+    els.sunrise.textContent = "--";
+    els.sunset.textContent = "--";
+    els.hourlyForecast.innerHTML = "";
+    els.dailyForecast.innerHTML = "";
+
+    if (!renderShell.refreshQueued) {
+      renderShell.refreshQueued = true;
+      queueMicrotask(async () => {
+        try {
+          await refreshActiveWeather();
+        } finally {
+          renderShell.refreshQueued = false;
+        }
+      });
+    }
+    return;
+  }
+
   const weather = activeCity.weather;
   const current = weather.current;
   const timezone = weather.timezone;
   const todayIndex = 0;
-  const dailyTime = Array.isArray(weather.daily?.time) ? weather.daily.time : [];
-  const dailyCodes = Array.isArray(weather.daily?.weather_code) ? weather.daily.weather_code : [];
-  const dailyHighs = Array.isArray(weather.daily?.temperature_2m_max) ? weather.daily.temperature_2m_max : [];
-  const dailyLows = Array.isArray(weather.daily?.temperature_2m_min) ? weather.daily.temperature_2m_min : [];
-  const dailySunrise = Array.isArray(weather.daily?.sunrise) ? weather.daily.sunrise : [];
-  const dailySunset = Array.isArray(weather.daily?.sunset) ? weather.daily.sunset : [];
-  const dailyPrecipMax = Array.isArray(weather.daily?.precipitation_probability_max) ? weather.daily.precipitation_probability_max : [];
-  const hourlyTime = Array.isArray(weather.hourly?.time) ? weather.hourly.time : [];
-  const hourlyTemps = Array.isArray(weather.hourly?.temperature_2m) ? weather.hourly.temperature_2m : [];
-  const hourlyWinds = Array.isArray(weather.hourly?.wind_speed_10m) ? weather.hourly.wind_speed_10m : [];
-  const hourlyCodes = Array.isArray(weather.hourly?.weather_code) ? weather.hourly.weather_code : [];
-  const hourlyPrecip = Array.isArray(weather.hourly?.precipitation_probability) ? weather.hourly.precipitation_probability : [];
+  const dailyTime = pickArray(weather.daily, ["time"]);
+  const dailyCodes = pickArray(weather.daily, ["weather_code", "weathercode"]);
+  const dailyHighs = pickArray(weather.daily, ["temperature_2m_max"]);
+  const dailyLows = pickArray(weather.daily, ["temperature_2m_min"]);
+  const dailySunrise = pickArray(weather.daily, ["sunrise"]);
+  const dailySunset = pickArray(weather.daily, ["sunset"]);
+  const dailyPrecipMax = pickArray(weather.daily, ["precipitation_probability_max"]);
+  const hourlyTime = pickArray(weather.hourly, ["time"]);
+  const hourlyTemps = pickArray(weather.hourly, ["temperature_2m"]);
+  const hourlyWinds = pickArray(weather.hourly, ["wind_speed_10m", "windspeed_10m"]);
+  const hourlyCodes = pickArray(weather.hourly, ["weather_code", "weathercode"]);
+  const hourlyPrecip = pickArray(weather.hourly, ["precipitation_probability"]);
   const precipitationChance = dailyPrecipMax[todayIndex];
   const currentSky = skyMode(current.weather_code, Boolean(current.is_day));
 

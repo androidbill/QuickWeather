@@ -566,7 +566,7 @@ button {
 
 @media (max-height: 860px) and (max-width: 420px) {
   .app-shell {
-    padding-top: 4px;
+    padding-top: 14px;
   }
 
   .city-title-text {

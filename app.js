@@ -271,7 +271,7 @@ function themeChromeColor(theme, sky) {
 function buildHeroSummary(current, daily) {
   const bits = [];
   if (current.wind_speed_10m != null) bits.push(`Breezes at ${formatWind(current.wind_speed_10m)}`);
-  if (current.relative_humidity_2m != null) bits.push(`${Math.round(current.relative_humidity_2m)}% humidity`);
+  if (current.relative_humidity_2m != null) bits.push(`${Math.round(current?.relative_humidity_2m ?? 0)}% humidity`);
   if (daily.precipitation_probability_max?.[0] != null) {
     bits.push(`${Math.round(daily.precipitation_probability_max[0])}% chance of precipitation`);
   }
@@ -438,7 +438,7 @@ function renderShell() {
   els.currentCondition.textContent = weatherLabel(current.weather_code);
   els.feelsLike.textContent = formatTemperature(current.apparent_temperature);
   els.windSpeed.textContent = formatWind(current.wind_speed_10m);
-  els.humidity.textContent = `${Math.round(current.relative_humidity_2m)}%`;
+  els.humidity.textContent = `${Math.round(current?.relative_humidity_2m ?? 0)}%`;
   els.uvIndex.textContent = Number(current.uv_index || 0).toFixed(2).replace(/\.00$/, "");
   els.sunrise.textContent = formatTime(dailySunrise[todayIndex], timezone);
   els.sunset.textContent = formatTime(dailySunset[todayIndex], timezone);
@@ -893,5 +893,5 @@ function bindEvents() {
 bindEvents();
 renderSearchResults();
 renderShell();
-disableRuntimeCaching();
+// runtime caching disabled removed for PWA stability
 setupInitialCity();

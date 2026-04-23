@@ -1,12 +1,12 @@
-const CACHE_NAME = "quickweather-cache-v3";
+const CACHE_NAME = "quickweather-cache-v4";
 const APP_FILES = [
   "./",
   "./index.html",
-  "./index.html?v=1.2.0",
-  "./styles.css?v=1.2.0",
-  "./app.js?v=1.2.0",
-  "./manifest.webmanifest?v=1.2.0",
-  "./icons/icon.svg?v=1.2.0"
+  "./index.html?v=1.2.2",
+  "./styles.css?v=1.2.2",
+  "./app.js?v=1.2.2",
+  "./manifest.webmanifest?v=1.2.2",
+  "./icons/icon.svg?v=1.2.2"
 ];
 
 self.addEventListener("install", (event) => {

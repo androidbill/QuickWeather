@@ -30,10 +30,11 @@ body[data-theme="light"] {
 
 html, body {
   margin: 0;
-  min-height: 100%;
+  height: 100%;
   background: var(--bg);
   color: var(--text);
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  overflow: hidden;
 }
 
 body {
@@ -55,30 +56,36 @@ button {
 }
 
 .app-shell {
-  min-height: 100vh;
+  height: 100dvh;
   max-width: 420px;
   margin: 0 auto;
-  padding: 12px 14px 28px;
+  padding: 10px 12px 14px;
   position: relative;
+  overflow: hidden;
 }
 
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .city-title-group {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  min-width: 0;
+  touch-action: pan-x;
 }
 
 .city-title-text {
-  font-size: 1.9rem;
+  font-size: 1.75rem;
   font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .star-btn {
@@ -99,12 +106,12 @@ button {
 }
 
 .icon-button {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
   background: transparent;
   color: var(--text);
-  font-size: 1.35rem;
+  font-size: 1.15rem;
 }
 
 .menu-wrap {
@@ -139,18 +146,19 @@ button {
 .screen {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
+  min-height: 0;
 }
 
 .hero {
   text-align: center;
-  padding-top: 10px;
+  padding-top: 0;
 }
 
 .hero-icon {
-  width: 84px;
-  height: 84px;
-  margin: 0 auto 10px;
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 4px;
 }
 
 .hero-icon svg {
@@ -170,27 +178,27 @@ button {
 }
 
 .hero-temp {
-  font-size: clamp(4.2rem, 14vw, 5.3rem);
+  font-size: clamp(3.3rem, 11vw, 4.3rem);
   line-height: 0.95;
   font-weight: 300;
 }
 
 .hero-condition {
-  margin-top: 8px;
-  font-size: 1.7rem;
+  margin-top: 4px;
+  font-size: 1.25rem;
 }
 
 .stats-card {
   background: linear-gradient(180deg, var(--panel-soft), var(--panel));
-  border-radius: 22px;
-  padding: 16px;
+  border-radius: 20px;
+  padding: 12px 10px;
   box-shadow: var(--shadow);
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px 10px;
+  gap: 10px 6px;
 }
 
 .metric {
@@ -199,31 +207,31 @@ button {
 
 .metric-icon {
   color: var(--accent);
-  font-size: 1.35rem;
-  margin-bottom: 4px;
+  font-size: 1.05rem;
+  margin-bottom: 2px;
 }
 
 .metric-label {
-  font-size: 0.9rem;
+  font-size: 0.76rem;
   color: var(--dim);
 }
 
 .metric-value {
-  margin-top: 4px;
+  margin-top: 2px;
   font-weight: 800;
-  font-size: 1.15rem;
+  font-size: 0.95rem;
 }
 
 .forecast-section h2 {
-  margin: 0 0 10px;
-  font-size: 1.8rem;
+  margin: 0 0 6px;
+  font-size: 1.18rem;
 }
 
 .forecast-row {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding-bottom: 2px;
   scroll-snap-type: x proximity;
 }
 
@@ -233,28 +241,28 @@ button {
 }
 
 .forecast-card {
-  min-width: 96px;
+  min-width: 82px;
   background: var(--panel-card);
-  border-radius: 18px;
-  padding: 14px 10px 12px;
+  border-radius: 16px;
+  padding: 10px 8px 8px;
   text-align: center;
   box-shadow: var(--shadow);
   scroll-snap-align: start;
 }
 
 .daily-card {
-  min-width: 106px;
+  min-width: 88px;
 }
 
 .forecast-label {
-  font-size: 0.92rem;
+  font-size: 0.78rem;
   color: var(--muted);
 }
 
 .forecast-icon {
-  width: 38px;
-  height: 38px;
-  margin: 10px auto 8px;
+  width: 28px;
+  height: 28px;
+  margin: 8px auto 6px;
 }
 
 .forecast-icon svg {
@@ -269,19 +277,19 @@ button {
 
 .forecast-temp {
   font-weight: 800;
-  font-size: 1.65rem;
+  font-size: 1.2rem;
 }
 
 .forecast-sub {
-  margin-top: 8px;
+  margin-top: 6px;
   color: var(--dim);
-  font-size: 0.9rem;
+  font-size: 0.76rem;
 }
 
 .forecast-range {
-  font-size: 1rem;
+  font-size: 0.82rem;
   color: var(--muted);
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .status-banner {
@@ -317,9 +325,13 @@ button {
   width: min(100%, 390px);
   background: var(--panel);
   border-radius: 24px;
-  padding: 18px;
+  padding: 16px;
   box-shadow: var(--shadow);
   border: 1px solid var(--border);
+  max-height: min(92dvh, 680px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-card h3 {
@@ -328,7 +340,7 @@ button {
 }
 
 .modal-sub {
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   color: var(--muted);
 }
 
@@ -382,12 +394,13 @@ button {
 }
 
 .list-panel {
-  margin-top: 14px;
+  margin-top: 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: 300px;
+  gap: 8px;
+  max-height: 42dvh;
   overflow: auto;
+  min-height: 0;
 }
 
 .list-item {
@@ -395,7 +408,7 @@ button {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 14px;
+  padding: 12px;
   border-radius: 18px;
   background: var(--panel-soft);
 }
@@ -418,18 +431,33 @@ button {
 
 @media (max-width: 420px) {
   .app-shell {
-    padding-inline: 12px;
+    padding-inline: 10px;
   }
 
   .city-title-text {
-    font-size: 1.7rem;
-  }
-
-  .forecast-section h2 {
     font-size: 1.45rem;
   }
 
-  .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .forecast-section h2 {
+    font-size: 1.05rem;
+  }
+
+  .search-form {
+    flex-direction: column;
+  }
+
+  .search-form .primary-btn {
+    width: 100%;
+  }
+
+  .list-item {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .list-item .primary-btn,
+  .list-item .danger-btn {
+    min-height: 42px;
+    padding: 0 14px;
   }
 }

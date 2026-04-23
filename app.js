@@ -61,7 +61,7 @@ const els = {
   hourlyForecast: document.getElementById("hourly-forecast"),
   dailyForecast: document.getElementById("daily-forecast"),
   statusBanner: document.getElementById("status-banner"),
-  swipeSurface: document.getElementById("swipe-surface"),
+  citySwipeZone: document.getElementById("city-swipe-zone"),
   modalBackdrop: document.getElementById("modal-backdrop"),
   searchModal: document.getElementById("search-modal"),
   removeModal: document.getElementById("remove-modal"),
@@ -589,7 +589,7 @@ function bindEvents() {
     }
   });
 
-  els.swipeSurface.addEventListener("touchstart", (event) => {
+  els.citySwipeZone.addEventListener("touchstart", (event) => {
     if (!document.querySelector(".modal:not(.hidden)")) {
       const touch = event.changedTouches[0];
       touchStartX = touch.clientX;
@@ -597,7 +597,7 @@ function bindEvents() {
     }
   }, { passive: true });
 
-  els.swipeSurface.addEventListener("touchend", (event) => {
+  els.citySwipeZone.addEventListener("touchend", (event) => {
     if (document.querySelector(".modal:not(.hidden)")) return;
     const touch = event.changedTouches[0];
     const deltaX = touch.clientX - touchStartX;

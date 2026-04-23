@@ -38,14 +38,25 @@
         </header>
 
         <section class="hero">
+          <div class="hero-kicker" id="hero-kicker">Weather now</div>
           <div class="hero-temp-row">
             <div class="hero-icon" id="current-icon" aria-hidden="true"></div>
-            <div class="hero-temp" id="current-temp">--°</div>
+            <div class="hero-temp-block">
+              <div class="hero-temp" id="current-temp">--°</div>
+              <div class="hero-high-low" id="hero-high-low">H -- L --</div>
+            </div>
           </div>
           <div class="hero-condition" id="current-condition">Loading weather...</div>
+          <div class="hero-summary" id="hero-summary">Finding your city...</div>
+          <div class="hero-chips">
+            <span class="hero-chip" id="precip-chip">Precip --</span>
+            <span class="hero-chip" id="cloud-chip">Clouds --</span>
+            <span class="hero-chip" id="updated-chip">Updated --</span>
+          </div>
         </section>
 
         <section class="stats-card">
+          <div class="section-mini-title">Core Conditions</div>
           <div class="stats-grid" id="stats-grid">
             <div class="metric">
               <div class="metric-icon">🌡</div>
@@ -81,13 +92,58 @@
         </section>
       </section>
 
+      <section class="insight-section">
+        <div class="section-heading">
+          <h2>Atmosphere</h2>
+          <div class="section-note">Live details</div>
+        </div>
+        <div class="insight-row" id="insight-row">
+          <article class="insight-card">
+            <div class="insight-label">Visibility</div>
+            <div class="insight-value" id="visibility">--</div>
+            <div class="insight-sub">How far you can see</div>
+          </article>
+          <article class="insight-card">
+            <div class="insight-label">Pressure</div>
+            <div class="insight-value" id="pressure">--</div>
+            <div class="insight-sub">Surface pressure</div>
+          </article>
+          <article class="insight-card">
+            <div class="insight-label">Wind Dir</div>
+            <div class="insight-value" id="wind-direction">--</div>
+            <div class="insight-sub">Compass heading</div>
+          </article>
+          <article class="insight-card">
+            <div class="insight-label">Gusts</div>
+            <div class="insight-value" id="wind-gusts">--</div>
+            <div class="insight-sub">Peak wind speed</div>
+          </article>
+          <article class="insight-card">
+            <div class="insight-label">Precip</div>
+            <div class="insight-value" id="precipitation">--</div>
+            <div class="insight-sub">Rain or snow amount</div>
+          </article>
+          <article class="insight-card">
+            <div class="insight-label">Clouds</div>
+            <div class="insight-value" id="cloud-cover">--</div>
+            <div class="insight-sub">Sky coverage</div>
+          </article>
+        </div>
+      </section>
+
       <section class="forecast-section">
-        <h2>24HR Forecast and Wind</h2>
+        <div class="section-heading">
+          <h2>24HR Forecast and Wind</h2>
+          <div class="section-note">Swipe for the next hours</div>
+        </div>
         <div class="forecast-row" id="hourly-forecast"></div>
       </section>
 
       <section class="forecast-section">
-        <h2>14-Day</h2>
+        <div class="section-heading">
+          <h2>14-Day</h2>
+          <div class="section-note">Longer view</div>
+        </div>
         <div class="forecast-row" id="daily-forecast"></div>
       </section>
     </main>

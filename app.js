@@ -329,16 +329,19 @@ function escapeHtml(value) {
 }
 
 function weatherIconSvg(code, isDay) {
-  const sun = `<circle cx="13" cy="13" r="5"></circle><path d="M13 1v4M13 21v4M1 13h4M21 13h4M4.5 4.5l2.8 2.8M18.7 18.7l2.8 2.8M21.5 4.5l-2.8 2.8M7.3 18.7l-2.8 2.8"></path>`;
-  const moon = `<path d="M17.8 4.7a8.9 8.9 0 1 0 7.5 14.8A10.2 10.2 0 0 1 17.8 4.7Z"></path>`;
-  const cloud = `<path d="M8 20h12.5a5.5 5.5 0 0 0 .3-11 7.2 7.2 0 0 0-13.7 2.2A4.5 4.5 0 0 0 8 20Z"></path>`;
+  const sun = `<circle cx="10" cy="10" r="4.4"></circle><path d="M10 1.5v3.2M10 15.3v3.2M1.5 10h3.2M15.3 10h3.2M3.7 3.7l2.3 2.3M14 14l2.3 2.3M16.3 3.7L14 6M6 14l-2.3 2.3"></path>`;
+  const moon = `<path d="M13.8 4.2a7.8 7.8 0 1 0 6.5 13.1A8.8 8.8 0 0 1 13.8 4.2Z"></path>`;
+  const cloud = `<path d="M7.5 19.5H19a4.9 4.9 0 0 0 .3-9.8 6.1 6.1 0 0 0-11.6 1.8 4 4 0 0 0-.2 8Z"></path>`;
   const rain = `${cloud}<path d="M10 23l-1.5 3M16 23l-1.5 3M22 23l-1.5 3"></path>`;
   const snow = `${cloud}<path d="M11 23h0M15 26h0M19 23h0"></path><path d="M11 21v4M9 23h4M15 24v4M13 26h4M19 21v4M17 23h4"></path>`;
   const storm = `${cloud}<path d="M14 21l-2 5h3l-1 4 5-7h-3l1-2z"></path>`;
+  const partlyCloudyDay = `<g transform="translate(1 0)">${sun}</g><g transform="translate(4 4)">${cloud}</g>`;
+  const partlyCloudyNight = `<g transform="translate(1 1)">${moon}</g><g transform="translate(4 4)">${cloud}</g>`;
 
   let content = cloud;
   if (code === 0) content = isDay ? sun : moon;
-  else if ([1, 2, 3].includes(code)) content = `${isDay ? `<g opacity="0.9">${sun}</g>` : `<g opacity="0.9">${moon}</g>`}${cloud}`;
+  else if ([1, 2].includes(code)) content = isDay ? partlyCloudyDay : partlyCloudyNight;
+  else if (code === 3) content = cloud;
   else if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) content = rain;
   else if ([71, 73, 75, 77, 85, 86].includes(code)) content = snow;
   else if ([95, 96, 99].includes(code)) content = storm;

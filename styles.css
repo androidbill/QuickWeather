@@ -163,10 +163,24 @@ button {
   padding-top: 0;
 }
 
+.hero-temp-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.hero-temp {
+  font-size: clamp(2.9rem, 10vw, 3.8rem);
+  line-height: 0.95;
+  font-weight: 300;
+}
+
 .hero-icon {
   width: 54px;
   height: 54px;
-  margin: 0 auto 2px;
+  flex: 0 0 auto;
 }
 
 .hero-icon svg {
@@ -179,20 +193,8 @@ button {
   stroke-linejoin: round;
 }
 
-.hero-temp-row {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
-
-.hero-temp {
-  font-size: clamp(2.9rem, 10vw, 3.8rem);
-  line-height: 0.95;
-  font-weight: 300;
-}
-
 .hero-condition {
-  margin-top: 2px;
+  margin-top: 0;
   font-size: 1.05rem;
 }
 
@@ -467,7 +469,6 @@ button {
   .hero-icon {
     width: 46px;
     height: 46px;
-    margin-bottom: 0;
   }
 
   .hero-temp {

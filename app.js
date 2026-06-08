@@ -225,26 +225,24 @@ function formatHourLabel(iso, timezone) {
   return `${displayHour}${suffix}`;
 }
 
-function currentHourIso(timezone) {
+function currentHourIso(weather) {
   try {
-    const parts = new Intl.DateTimeFormat("en-CA", {
-      timeZone: timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      hourCycle: "h23"
-    }).formatToParts(new Date());
-
-    const partMap = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-    return `${partMap.year}-${partMap.month}-${partMap.day}T${partMap.hour}:00`;
+    const utcOffsetSeconds = Number(weather?.utc_offset_seconds);
+    const date = Number.isFinite(utcOffsetSeconds)
+      ? new Date(Date.now() + utcOffsetSeconds * 1000)
+      : new Date();
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    const hour = String(date.getUTCHours()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hour}:00`;
   } catch {
     return "";
   }
 }
 
-function getCurrentHourIndex(hourlyTime, current, timezone) {
-  const localCurrentHour = currentHourIso(timezone);
+function getCurrentHourIndex(hourlyTime, current, weather) {
+  const localCurrentHour = currentHourIso(weather);
   const localIndex = hourlyTime.findIndex((time) => time === localCurrentHour);
   if (localIndex >= 0) return localIndex;
 
@@ -506,7 +504,7 @@ function renderShell() {
   els.sunrise.textContent = formatTime(dailySunrise[todayIndex], timezone);
   els.sunset.textContent = formatTime(dailySunset[todayIndex], timezone);
 
-  const startIndex = getCurrentHourIndex(hourlyTime, current, timezone);
+  const startIndex = getCurrentHourIndex(hourlyTime, current, weather);
   const hourlySlice = hourlyTime.slice(startIndex, startIndex + 24).map((time, index) => ({
     time,
     temperature: hourlyTemps[startIndex + index],

@@ -8,14 +8,20 @@
   <meta http-equiv="Expires" content="0">
   <meta name="theme-color" content="#142033" id="theme-color-meta">
   <title>QuickWeather</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=1.2.2">
+  <link rel="manifest" href="./manifest.webmanifest?v=2026.06.08.03">
   <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icons/icon.svg">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=2026.06.08.03">
 </head>
 <body>
   <div class="app-shell">
     <main class="screen" id="swipe-surface">
+      <div class="ambient-layer" aria-hidden="true">
+        <span class="stream stream-one"></span>
+        <span class="stream stream-two"></span>
+        <span class="stream stream-three"></span>
+      </div>
+
       <section class="top-swipe-zone" id="city-swipe-zone">
         <header class="topbar">
           <div class="city-title-group">
@@ -38,43 +44,56 @@
         </header>
 
         <section class="hero">
-          <div class="hero-temp-row">
+          <div class="hero-main">
             <div class="hero-icon" id="current-icon" aria-hidden="true"></div>
-            <div class="hero-temp" id="current-temp">--°</div>
+            <div class="hero-copy">
+              <div class="hero-temp" id="current-temp">--°</div>
+              <div class="hero-condition" id="current-condition">Loading weather...</div>
+              <div class="hero-summary" id="current-summary">Preparing wind profile...</div>
+            </div>
           </div>
-          <div class="hero-condition" id="current-condition">Loading weather...</div>
+        </section>
+
+        <section class="wind-focus">
+          <div class="wind-dial" aria-hidden="true">
+            <div class="dial-ring"></div>
+            <div class="dial-tick north">N</div>
+            <div class="dial-tick east">E</div>
+            <div class="dial-tick south">S</div>
+            <div class="dial-tick west">W</div>
+            <div class="wind-needle" id="wind-compass-needle"></div>
+            <div class="dial-center"></div>
+          </div>
+          <div class="wind-panel">
+            <div class="section-mini-title">Wind Command</div>
+            <div class="wind-speed-large" id="wind-speed">--</div>
+            <div class="wind-direction-row">
+              <span id="wind-direction">--</span>
+              <span id="wind-gust">Gust --</span>
+            </div>
+          </div>
         </section>
 
         <section class="stats-card">
-          <div class="section-mini-title">Core Conditions</div>
+          <div class="section-mini-title">Atmosphere</div>
           <div class="stats-grid" id="stats-grid">
-            <div class="metric">
-              <div class="metric-icon">🌡</div>
-              <div class="metric-label">Feels</div>
+            <div class="metric metric-temp">
+              <div class="metric-label">Feels Like</div>
               <div class="metric-value" id="feels-like">--</div>
             </div>
             <div class="metric">
-              <div class="metric-icon">〰</div>
-              <div class="metric-label">Wind</div>
-              <div class="metric-value" id="wind-speed">--</div>
-            </div>
-            <div class="metric">
-              <div class="metric-icon">💧</div>
-              <div class="metric-label">Humid</div>
+              <div class="metric-label">Humidity</div>
               <div class="metric-value" id="humidity">--</div>
             </div>
             <div class="metric">
-              <div class="metric-icon">☀</div>
-              <div class="metric-label">UV</div>
+              <div class="metric-label">UV Index</div>
               <div class="metric-value" id="uv-index">--</div>
             </div>
             <div class="metric">
-              <div class="metric-icon">☀</div>
               <div class="metric-label">Sunrise</div>
               <div class="metric-value" id="sunrise">--</div>
             </div>
             <div class="metric">
-              <div class="metric-icon">☀</div>
               <div class="metric-label">Sunset</div>
               <div class="metric-value" id="sunset">--</div>
             </div>
@@ -84,8 +103,8 @@
 
       <section class="forecast-section">
         <div class="section-heading">
-          <h2>24HR Forecast and Wind</h2>
-          <div class="section-note">Swipe for the next hours</div>
+          <h2>24HR Temp + Wind</h2>
+          <div class="section-note">Animated flow</div>
         </div>
         <div class="forecast-row" id="hourly-forecast"></div>
       </section>
@@ -93,7 +112,7 @@
       <section class="forecast-section">
         <div class="section-heading">
           <h2>14-Day</h2>
-          <div class="section-note">Longer view</div>
+          <div class="section-note">Long-range rhythm</div>
         </div>
         <div class="forecast-row" id="daily-forecast"></div>
       </section>
@@ -133,7 +152,7 @@
   <div class="modal hidden" id="about-modal" role="dialog" aria-modal="true" aria-labelledby="about-title">
     <div class="modal-card about-card">
       <h3 id="about-title">QuickWeather</h3>
-      <p>Version 1.1</p>
+      <p>Version 2026.06.08.03</p>
       <p>Created by: Bill Parsons</p>
       <div class="modal-actions">
         <button class="primary-btn" type="button" data-close-modal="about-modal">Close</button>
@@ -141,6 +160,6 @@
     </div>
   </div>
 
-  <script src="./app.js"></script>
+  <script src="./app.js?v=2026.06.08.03"></script>
 </body>
 </html>

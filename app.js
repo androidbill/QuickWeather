@@ -52,8 +52,12 @@ const els = {
   currentIcon: document.getElementById("current-icon"),
   currentTemp: document.getElementById("current-temp"),
   currentCondition: document.getElementById("current-condition"),
+  currentSummary: document.getElementById("current-summary"),
   feelsLike: document.getElementById("feels-like"),
   windSpeed: document.getElementById("wind-speed"),
+  windDirection: document.getElementById("wind-direction"),
+  windGust: document.getElementById("wind-gust"),
+  windCompassNeedle: document.getElementById("wind-compass-needle"),
   humidity: document.getElementById("humidity"),
   uvIndex: document.getElementById("uv-index"),
   sunrise: document.getElementById("sunrise"),
@@ -171,6 +175,11 @@ function formatWind(value) {
   return `${Math.round(value)} km/h`;
 }
 
+function formatGust(value) {
+  if (value == null || Number.isNaN(Number(value))) return "Gust --";
+  return `Gust ${Math.round(value)} km/h`;
+}
+
 function formatDistanceMeters(value) {
   if (value == null || Number.isNaN(Number(value))) return "--";
   const km = Number(value) / 1000;
@@ -232,6 +241,11 @@ function compassDirection(degrees) {
   return dirs[Math.round(Number(degrees) / 45) % 8];
 }
 
+function windArrow(degrees) {
+  if (degrees == null || Number.isNaN(Number(degrees))) return "↑";
+  return `<span class="wind-arrow" style="--arrow-rotation: ${Number(degrees)}deg">↑</span>`;
+}
+
 function pickArray(source, keys) {
   for (const key of keys) {
     const value = source?.[key];
@@ -270,7 +284,10 @@ function themeChromeColor(theme, sky) {
 
 function buildHeroSummary(current, daily) {
   const bits = [];
-  if (current.wind_speed_10m != null) bits.push(`Breezes at ${formatWind(current.wind_speed_10m)}`);
+  if (current.wind_speed_10m != null) {
+    bits.push(`${compassDirection(current.wind_direction_10m)} wind at ${formatWind(current.wind_speed_10m)}`);
+  }
+  if (current.wind_gusts_10m != null) bits.push(`gusts ${formatWind(current.wind_gusts_10m)}`);
   if (current.relative_humidity_2m != null) bits.push(`${Math.round(current?.relative_humidity_2m ?? 0)}% humidity`);
   if (daily.precipitation_probability_max?.[0] != null) {
     bits.push(`${Math.round(daily.precipitation_probability_max[0])}% chance of precipitation`);
@@ -310,6 +327,7 @@ function normalizeWeatherResponse(data) {
       ...hourly,
       weather_code: pickArray(hourly, ["weather_code", "weathercode"]),
       wind_speed_10m: pickArray(hourly, ["wind_speed_10m", "windspeed_10m"]),
+      wind_direction_10m: pickArray(hourly, ["wind_direction_10m", "winddirection_10m"]),
       precipitation_probability: pickArray(hourly, ["precipitation_probability"])
     },
     daily: {
@@ -361,8 +379,12 @@ function renderShell() {
     els.currentIcon.innerHTML = weatherIconSvg(2, true);
     els.currentTemp.textContent = "--°";
     els.currentCondition.textContent = activeCity ? (activeError || "Loading weather...") : "Finding your city...";
+    els.currentSummary.textContent = "Preparing wind profile...";
     els.feelsLike.textContent = "--";
     els.windSpeed.textContent = "--";
+    els.windDirection.textContent = "--";
+    els.windGust.textContent = "Gust --";
+    els.windCompassNeedle.style.setProperty("--wind-rotation", "0deg");
     els.humidity.textContent = "--";
     els.uvIndex.textContent = "--";
     els.sunrise.textContent = "--";
@@ -389,8 +411,12 @@ function renderShell() {
     els.currentIcon.innerHTML = weatherIconSvg(2, true);
     els.currentTemp.textContent = "--°";
     els.currentCondition.textContent = "Updating forecast...";
+    els.currentSummary.textContent = "Refreshing wind profile...";
     els.feelsLike.textContent = "--";
     els.windSpeed.textContent = "--";
+    els.windDirection.textContent = "--";
+    els.windGust.textContent = "Gust --";
+    els.windCompassNeedle.style.setProperty("--wind-rotation", "0deg");
     els.humidity.textContent = "--";
     els.uvIndex.textContent = "--";
     els.sunrise.textContent = "--";
@@ -425,6 +451,7 @@ function renderShell() {
   const hourlyTime = pickArray(weather.hourly, ["time"]);
   const hourlyTemps = pickArray(weather.hourly, ["temperature_2m"]);
   const hourlyWinds = pickArray(weather.hourly, ["wind_speed_10m", "windspeed_10m"]);
+  const hourlyWindDirections = pickArray(weather.hourly, ["wind_direction_10m", "winddirection_10m"]);
   const hourlyCodes = pickArray(weather.hourly, ["weather_code", "weathercode"]);
   const hourlyPrecip = pickArray(weather.hourly, ["precipitation_probability"]);
   const precipitationChance = dailyPrecipMax[todayIndex];
@@ -436,8 +463,12 @@ function renderShell() {
   els.currentIcon.innerHTML = weatherIconSvg(current.weather_code, Boolean(current.is_day));
   els.currentTemp.textContent = formatTemperature(current.temperature_2m);
   els.currentCondition.textContent = weatherLabel(current.weather_code);
+  els.currentSummary.textContent = buildHeroSummary(current, weather.daily);
   els.feelsLike.textContent = formatTemperature(current.apparent_temperature);
   els.windSpeed.textContent = formatWind(current.wind_speed_10m);
+  els.windDirection.textContent = `${compassDirection(current.wind_direction_10m)} ${current.wind_direction_10m != null ? `${Math.round(current.wind_direction_10m)}°` : ""}`.trim();
+  els.windGust.textContent = formatGust(current.wind_gusts_10m);
+  els.windCompassNeedle.style.setProperty("--wind-rotation", `${Number(current.wind_direction_10m || 0)}deg`);
   els.humidity.textContent = `${Math.round(current?.relative_humidity_2m ?? 0)}%`;
   els.uvIndex.textContent = Number(current.uv_index || 0).toFixed(2).replace(/\.00$/, "");
   els.sunrise.textContent = formatTime(dailySunrise[todayIndex], timezone);
@@ -449,6 +480,7 @@ function renderShell() {
     time,
     temperature: hourlyTemps[startIndex + index],
     wind: hourlyWinds[startIndex + index],
+    windDirection: hourlyWindDirections[startIndex + index],
     code: hourlyCodes[startIndex + index],
     precipitationProbability: hourlyPrecip[startIndex + index]
   }));
@@ -458,7 +490,8 @@ function renderShell() {
       <div class="forecast-label">${formatHourLabel(hour.time, timezone, index === 0)}</div>
       <div class="forecast-icon">${weatherIconSvg(hour.code, true)}</div>
       <div class="forecast-temp">${formatTemperature(hour.temperature)}</div>
-      <div class="forecast-sub">⇆ ${formatWind(hour.wind)}</div>
+      <div class="forecast-sub">${windArrow(hour.windDirection)} ${formatWind(hour.wind)}</div>
+      <div class="forecast-direction">${compassDirection(hour.windDirection)}</div>
       <div class="forecast-note">${hour.precipitationProbability != null ? `${Math.round(hour.precipitationProbability)}% precip` : ""}</div>
     </article>
   `).join("");
@@ -534,7 +567,7 @@ async function fetchWeatherForCity(city) {
     latitude: String(city.latitude),
     longitude: String(city.longitude),
     current: "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,is_day,weather_code,precipitation,cloud_cover,visibility,surface_pressure",
-    hourly: "temperature_2m,weather_code,wind_speed_10m,precipitation_probability",
+    hourly: "temperature_2m,weather_code,wind_speed_10m,wind_direction_10m,precipitation_probability",
     daily: "weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max",
     temperature_unit: state.units,
     wind_speed_unit: "kmh",
@@ -553,7 +586,7 @@ async function fetchWeatherForCity(city) {
       longitude: String(city.longitude),
       current_weather: "true",
       daily: "weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset",
-      hourly: "temperature_2m,relativehumidity_2m,apparent_temperature,windspeed_10m,uv_index,weathercode",
+      hourly: "temperature_2m,relativehumidity_2m,apparent_temperature,windspeed_10m,winddirection_10m,uv_index,weathercode",
       temperature_unit: state.units,
       windspeed_unit: "kmh",
       timezone: "auto",
@@ -786,6 +819,19 @@ async function disableRuntimeCaching() {
   }
 }
 
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+
+  window.addEventListener("load", async () => {
+    try {
+      const registration = await navigator.serviceWorker.register("./sw.js");
+      registration.update();
+    } catch {
+      // The app still works online when service worker registration is unavailable.
+    }
+  });
+}
+
 function bindEvents() {
   els.menuBtn.addEventListener("click", (event) => {
     event.stopPropagation();
@@ -893,5 +939,5 @@ function bindEvents() {
 bindEvents();
 renderSearchResults();
 renderShell();
-// runtime caching disabled removed for PWA stability
+registerServiceWorker();
 setupInitialCity();

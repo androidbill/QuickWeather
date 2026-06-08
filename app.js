@@ -704,7 +704,7 @@ function swipeCity(direction) {
     draft.activeCityId = draft.cities[nextIndex].id;
   });
 
-  if (!getActiveCity()?.weather) refreshActiveWeather();
+  refreshActiveWeather();
 }
 
 async function reverseGeocode(lat, lon) {

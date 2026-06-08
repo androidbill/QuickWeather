@@ -1,11 +1,11 @@
-const CACHE_NAME = "quickweather-cache-2026.06.08.04";
+const CACHE_NAME = "quickweather-cache-2026.06.08.06";
 const APP_FILES = [
   "./",
   "./index.html",
-  "./index.html?v=2026.06.08.04",
-  "./styles.css?v=2026.06.08.04",
-  "./app.js?v=2026.06.08.04",
-  "./manifest.webmanifest?v=2026.06.08.04",
+  "./index.html?v=2026.06.08.06",
+  "./styles.css?v=2026.06.08.06",
+  "./app.js?v=2026.06.08.06",
+  "./manifest.webmanifest?v=2026.06.08.06",
   "./icons/icon.svg"
 ];
 

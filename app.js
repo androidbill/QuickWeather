@@ -216,14 +216,46 @@ function formatDay(iso, timezone) {
   }).format(stableDate);
 }
 
-function formatHourLabel(iso, timezone, isFirst) {
-  if (isFirst) return "Now";
+function formatHourLabel(iso, timezone) {
   const timePart = String(iso).split("T")[1] || "";
   const [hourText = "0"] = timePart.split(":");
   const hour = Number(hourText);
   const suffix = hour >= 12 ? "PM" : "AM";
   const displayHour = hour % 12 || 12;
   return `${displayHour}${suffix}`;
+}
+
+function currentHourIso(timezone) {
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      hourCycle: "h23"
+    }).formatToParts(new Date());
+
+    const partMap = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    return `${partMap.year}-${partMap.month}-${partMap.day}T${partMap.hour}:00`;
+  } catch {
+    return "";
+  }
+}
+
+function getCurrentHourIndex(hourlyTime, current, timezone) {
+  const localCurrentHour = currentHourIso(timezone);
+  const localIndex = hourlyTime.findIndex((time) => time === localCurrentHour);
+  if (localIndex >= 0) return localIndex;
+
+  if (localCurrentHour) {
+    for (let index = hourlyTime.length - 1; index >= 0; index -= 1) {
+      if (hourlyTime[index] <= localCurrentHour) return index;
+    }
+  }
+
+  const apiCurrentIndex = hourlyTime.findIndex((time) => time === current.time);
+  return apiCurrentIndex >= 0 ? apiCurrentIndex : 0;
 }
 
 function formatUpdatedTime(iso) {
@@ -474,8 +506,7 @@ function renderShell() {
   els.sunrise.textContent = formatTime(dailySunrise[todayIndex], timezone);
   els.sunset.textContent = formatTime(dailySunset[todayIndex], timezone);
 
-  const currentHourIndex = hourlyTime.findIndex((time) => time === current.time);
-  const startIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
+  const startIndex = getCurrentHourIndex(hourlyTime, current, timezone);
   const hourlySlice = hourlyTime.slice(startIndex, startIndex + 24).map((time, index) => ({
     time,
     temperature: hourlyTemps[startIndex + index],
@@ -487,7 +518,7 @@ function renderShell() {
 
   els.hourlyForecast.innerHTML = hourlySlice.map((hour, index) => `
     <article class="forecast-card">
-      <div class="forecast-label">${formatHourLabel(hour.time, timezone, index === 0)}</div>
+      <div class="forecast-label">${formatHourLabel(hour.time, timezone)}</div>
       <div class="forecast-icon">${weatherIconSvg(hour.code, true)}</div>
       <div class="forecast-temp">${formatTemperature(hour.temperature)}</div>
       <div class="forecast-sub">${windArrow(hour.windDirection)} ${formatWind(hour.wind)}</div>

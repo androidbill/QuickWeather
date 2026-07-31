@@ -1,16 +1,23 @@
-const CACHE_NAME = "quickweather-cache-2026.06.08.07";
+// Keep this version in step with APP_VERSION in app.js.
+const CACHE_NAME = "quickweather-cache-2026.07.31.01";
 const APP_FILES = [
   "./",
   "./index.html",
-  "./index.html?v=2026.06.08.07",
-  "./styles.css?v=2026.06.08.07",
-  "./app.js?v=2026.06.08.07",
-  "./manifest.webmanifest?v=2026.06.08.07",
-  "./icons/icon.svg"
+  "./styles.css",
+  "./app.js",
+  "./manifest.webmanifest",
+  "./icons/icon.svg",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_FILES)));
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) =>
+      // Cache files one by one so a single bad response cannot fail the whole install.
+      Promise.all(APP_FILES.map((file) => cache.add(file).catch(() => undefined)))
+    )
+  );
   self.skipWaiting();
 });
 
@@ -27,34 +34,26 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   const url = new URL(event.request.url);
-  const isAppAsset = url.origin === self.location.origin;
+  if (url.origin !== self.location.origin) return;
 
-  if (isAppAsset) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-        .catch(async () => {
-          const cached = await caches.match(event.request);
-          if (cached) return cached;
-          return caches.match("./index.html");
-        })
-    );
-    return;
-  }
-
+  // Network first, so a new deploy is always picked up; cache is only the offline fallback.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200) return response;
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200 && response.type === "basic") {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
         return response;
-      });
-    })
+      })
+      .catch(async () => {
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+        if (event.request.mode === "navigate") {
+          const shell = await caches.match("./index.html");
+          if (shell) return shell;
+        }
+        return Response.error();
+      })
   );
 });

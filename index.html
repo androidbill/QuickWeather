@@ -2,26 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#142033" id="theme-color-meta">
   <title>QuickWeather</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=2026.06.08.07">
+  <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="./icons/icon.svg">
-  <link rel="stylesheet" href="./styles.css?v=2026.06.08.07">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div class="app-shell">
-    <main class="screen" id="swipe-surface">
-      <div class="ambient-layer" aria-hidden="true">
-        <span class="stream stream-one"></span>
-        <span class="stream stream-two"></span>
-        <span class="stream stream-three"></span>
-      </div>
+  <canvas id="sky-canvas" aria-hidden="true"></canvas>
 
+  <div class="app-shell">
+    <main class="screen" id="screen">
       <section class="top-swipe-zone" id="city-swipe-zone">
         <header class="topbar">
           <div class="city-title-group">
@@ -34,22 +27,41 @@
               <button class="icon-button" id="menu-btn" type="button" aria-label="Open menu">⋮</button>
               <div class="menu-panel hidden" id="menu-panel">
                 <button type="button" data-menu-action="add-city">Add New City</button>
-                <button type="button" data-menu-action="refresh-page">Refresh Page</button>
+                <button type="button" data-menu-action="refresh-data">Refresh Weather</button>
                 <button type="button" data-menu-action="toggle-units" id="units-menu-btn">Switch to Fahrenheit</button>
                 <button type="button" data-menu-action="remove-city">Remove City</button>
+                <button type="button" data-menu-action="share">Share</button>
+                <button type="button" data-menu-action="refresh-page">Reload App</button>
                 <button type="button" data-menu-action="about">About</button>
               </div>
             </div>
           </div>
         </header>
 
+        <div class="city-dots" id="city-dots" aria-hidden="true"></div>
+
         <section class="hero">
           <div class="hero-main">
             <div class="hero-icon" id="current-icon" aria-hidden="true"></div>
             <div class="hero-copy">
-              <div class="hero-temp" id="current-temp">--°</div>
+              <div class="hero-temp-row">
+                <div class="hero-temp" id="current-temp">--</div>
+                <div class="hero-unit" id="current-unit">°C</div>
+              </div>
               <div class="hero-condition" id="current-condition">Loading weather...</div>
               <div class="hero-summary" id="current-summary">Preparing wind profile...</div>
+            </div>
+          </div>
+
+          <div class="temp-track" aria-hidden="true">
+            <div class="temp-track-rail">
+              <div class="temp-track-fill" id="temp-track-fill"></div>
+              <div class="temp-track-marker" id="temp-track-marker"></div>
+            </div>
+            <div class="temp-track-labels">
+              <span id="today-low">--</span>
+              <span class="temp-track-caption">Today's range</span>
+              <span id="today-high">--</span>
             </div>
           </div>
         </section>
@@ -61,12 +73,26 @@
             <div class="dial-tick east">E</div>
             <div class="dial-tick south">S</div>
             <div class="dial-tick west">W</div>
+            <div class="rotor" id="wind-rotor">
+              <span class="blade"></span>
+              <span class="blade"></span>
+              <span class="blade"></span>
+            </div>
             <div class="wind-needle" id="wind-compass-needle"></div>
             <div class="dial-center"></div>
           </div>
           <div class="wind-panel">
             <div class="section-mini-title">Wind Command</div>
-            <div class="wind-speed-large" id="wind-speed">--</div>
+            <div class="wind-speed-large">
+              <span id="wind-speed">--</span><span class="wind-speed-unit">km/h</span>
+            </div>
+            <div class="wind-beaufort" id="wind-beaufort">--</div>
+            <div class="gust-meter" aria-hidden="true">
+              <div class="gust-rail">
+                <div class="gust-fill" id="gust-fill"></div>
+                <div class="gust-peak" id="gust-peak"></div>
+              </div>
+            </div>
             <div class="wind-direction-row">
               <span id="wind-direction">--</span>
               <span id="wind-gust">Gust --</span>
@@ -104,21 +130,33 @@
       <section class="forecast-section">
         <div class="section-heading">
           <h2>24HR Temp + Wind</h2>
-          <div class="section-note">Animated flow</div>
+          <div class="section-note" id="hourly-note">Live curve</div>
         </div>
+        <div class="temp-ribbon" id="temp-ribbon"></div>
         <div class="forecast-row" id="hourly-forecast"></div>
       </section>
 
       <section class="forecast-section">
         <div class="section-heading">
           <h2>14-Day</h2>
-          <div class="section-note">Long-range rhythm</div>
+          <div class="section-note" id="daily-note">Range bars</div>
         </div>
         <div class="forecast-row" id="daily-forecast"></div>
       </section>
+
+      <footer class="app-footer">
+        <span id="version-label">QuickWeather</span>
+        <span id="updated-label"></span>
+      </footer>
     </main>
 
+    <div class="refresh-hint" id="refresh-hint" aria-hidden="true">Release to refresh</div>
     <div class="status-banner hidden" id="status-banner"></div>
+  </div>
+
+  <div class="update-toast hidden" id="update-toast" role="status">
+    <span>New version ready</span>
+    <button class="primary-btn" type="button" id="update-reload-btn">Reload</button>
   </div>
 
   <div class="modal-backdrop hidden" id="modal-backdrop"></div>
@@ -152,14 +190,15 @@
   <div class="modal hidden" id="about-modal" role="dialog" aria-modal="true" aria-labelledby="about-title">
     <div class="modal-card about-card">
       <h3 id="about-title">QuickWeather</h3>
-      <p>Version 2026.06.08.07</p>
+      <p>Version <span id="about-version">--</span></p>
       <p>Created by: Bill Parsons</p>
+      <p class="about-credit">Forecast data by Open-Meteo</p>
       <div class="modal-actions">
         <button class="primary-btn" type="button" data-close-modal="about-modal">Close</button>
       </div>
     </div>
   </div>
 
-  <script src="./app.js?v=2026.06.08.07"></script>
+  <script src="./app.js"></script>
 </body>
 </html>

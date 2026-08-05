@@ -29,7 +29,7 @@
                 <button type="button" data-menu-action="add-city">Add New City</button>
                 <button type="button" data-menu-action="refresh-data">Refresh Weather</button>
                 <button type="button" data-menu-action="toggle-units" id="units-menu-btn">Switch to Fahrenheit</button>
-                <button type="button" data-menu-action="remove-city">Remove City</button>
+                <button type="button" data-menu-action="manage-cities">Manage Cities</button>
                 <button type="button" data-menu-action="share">Share</button>
                 <button type="button" data-menu-action="refresh-page">Reload App</button>
                 <button type="button" data-menu-action="about">About</button>
@@ -38,9 +38,15 @@
           </div>
         </header>
 
+        <div class="alert-row" id="alert-row"></div>
         <div class="city-dots" id="city-dots" aria-hidden="true"></div>
 
         <section class="hero">
+          <button class="view-context hidden" id="view-context" type="button">
+            <span id="view-context-text">Now</span>
+            <span class="view-context-reset">Back to now</span>
+          </button>
+
           <div class="hero-main">
             <div class="hero-icon" id="current-icon" aria-hidden="true"></div>
             <div class="hero-copy">
@@ -60,7 +66,7 @@
             </div>
             <div class="temp-track-labels">
               <span id="today-low">--</span>
-              <span class="temp-track-caption">Today's range</span>
+              <span class="temp-track-caption" id="temp-track-caption">Today's range</span>
               <span id="today-high">--</span>
             </div>
           </div>
@@ -99,47 +105,89 @@
             </div>
           </div>
         </section>
-
-        <section class="stats-card">
-          <div class="section-mini-title">Atmosphere</div>
-          <div class="stats-grid" id="stats-grid">
-            <div class="metric metric-temp">
-              <div class="metric-label">Feels Like</div>
-              <div class="metric-value" id="feels-like">--</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Humidity</div>
-              <div class="metric-value" id="humidity">--</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">UV Index</div>
-              <div class="metric-value" id="uv-index">--</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Sunrise</div>
-              <div class="metric-value" id="sunrise">--</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Sunset</div>
-              <div class="metric-value" id="sunset">--</div>
-            </div>
-          </div>
-        </section>
       </section>
 
-      <section class="forecast-section">
+      <section class="forecast-section scrub-section">
         <div class="section-heading">
-          <h2>24HR Temp + Wind</h2>
-          <div class="section-note" id="hourly-note">Live curve</div>
+          <h2 id="hourly-title">24HR Temp + Wind</h2>
+          <div class="section-note">Drag the curve</div>
         </div>
         <div class="temp-ribbon" id="temp-ribbon"></div>
         <div class="forecast-row" id="hourly-forecast"></div>
       </section>
 
+      <section class="stats-card">
+        <div class="section-heading">
+          <div class="section-mini-title">Atmosphere</div>
+          <div class="section-note">Tap for trend</div>
+        </div>
+        <div class="stats-grid" id="stats-grid">
+          <button class="metric metric-temp" type="button" data-metric="feels">
+            <span class="metric-label">Feels Like</span>
+            <span class="metric-value" id="feels-like">--</span>
+          </button>
+          <button class="metric" type="button" data-metric="humidity">
+            <span class="metric-label">Humidity</span>
+            <span class="metric-value" id="humidity">--</span>
+          </button>
+          <button class="metric" type="button" data-metric="uv">
+            <span class="metric-label">UV Index</span>
+            <span class="metric-value" id="uv-index">--</span>
+          </button>
+          <button class="metric" type="button" data-metric="precip">
+            <span class="metric-label">Precip</span>
+            <span class="metric-value" id="precip-chance">--</span>
+          </button>
+        </div>
+        <div class="metric-detail hidden" id="metric-detail">
+          <div class="metric-detail-head">
+            <span id="metric-detail-title">Trend</span>
+            <span id="metric-detail-range"></span>
+          </div>
+          <div class="sparkline" id="metric-sparkline"></div>
+        </div>
+      </section>
+
+      <section class="daylight-card">
+        <div class="section-heading">
+          <div class="section-mini-title">Daylight</div>
+          <div class="section-note" id="daylight-remaining"></div>
+        </div>
+        <div class="sun-arc" id="sun-arc"></div>
+        <div class="sun-times">
+          <span><em>Sunrise</em><strong id="sunrise">--</strong></span>
+          <span><em>Sunset</em><strong id="sunset">--</strong></span>
+        </div>
+      </section>
+
+      <section class="precip-card">
+        <div class="section-heading">
+          <div class="section-mini-title">Precipitation</div>
+          <div class="section-note">Next 12 hours</div>
+        </div>
+        <div class="precip-headline" id="precip-headline">--</div>
+        <div class="precip-bars" id="precip-bars"></div>
+      </section>
+
+      <section class="air-card" id="air-card">
+        <div class="section-heading">
+          <div class="section-mini-title">Air Quality</div>
+          <div class="section-note" id="air-note">--</div>
+        </div>
+        <div class="air-main">
+          <div class="air-index" id="air-index">--</div>
+          <div class="air-copy">
+            <div class="air-category" id="air-category">Loading...</div>
+            <div class="air-detail" id="air-detail"></div>
+          </div>
+        </div>
+        <div class="air-rail" aria-hidden="true"><div class="air-marker" id="air-marker"></div></div>
+      </section>
+
       <section class="forecast-section">
         <div class="section-heading">
           <h2>14-Day</h2>
-          <div class="section-note" id="daily-note">Range bars</div>
+          <div class="section-note">Tap a day</div>
         </div>
         <div class="forecast-row" id="daily-forecast"></div>
       </section>
@@ -150,7 +198,13 @@
       </footer>
     </main>
 
-    <div class="refresh-hint" id="refresh-hint" aria-hidden="true">Release to refresh</div>
+    <div class="pull-indicator" id="pull-indicator" aria-hidden="true">
+      <svg viewBox="0 0 36 36">
+        <circle class="pull-track" cx="18" cy="18" r="15"></circle>
+        <circle class="pull-progress" id="pull-progress" cx="18" cy="18" r="15"></circle>
+      </svg>
+    </div>
+
     <div class="status-banner hidden" id="status-banner"></div>
   </div>
 
@@ -176,13 +230,13 @@
     </div>
   </div>
 
-  <div class="modal hidden" id="remove-modal" role="dialog" aria-modal="true" aria-labelledby="remove-title">
+  <div class="modal hidden" id="manage-modal" role="dialog" aria-modal="true" aria-labelledby="manage-title">
     <div class="modal-card">
-      <h3 id="remove-title">Remove City</h3>
-      <p class="modal-sub">Choose a city to remove from QuickWeather.</p>
-      <div class="list-panel" id="remove-city-list"></div>
+      <h3 id="manage-title">Manage Cities</h3>
+      <p class="modal-sub">Drag a card by its handle to reorder. Swipe order follows this list.</p>
+      <div class="list-panel manage-panel" id="manage-city-list"></div>
       <div class="modal-actions">
-        <button class="secondary-btn" type="button" data-close-modal="remove-modal">Done</button>
+        <button class="secondary-btn" type="button" data-close-modal="manage-modal">Done</button>
       </div>
     </div>
   </div>
@@ -192,7 +246,7 @@
       <h3 id="about-title">QuickWeather</h3>
       <p>Version <span id="about-version">--</span></p>
       <p>Created by: Bill Parsons</p>
-      <p class="about-credit">Forecast data by Open-Meteo</p>
+      <p class="about-credit">Forecast and air quality by Open-Meteo</p>
       <div class="modal-actions">
         <button class="primary-btn" type="button" data-close-modal="about-modal">Close</button>
       </div>

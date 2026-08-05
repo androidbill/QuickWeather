@@ -1,5 +1,5 @@
 // Keep this version in step with APP_VERSION in app.js.
-const CACHE_NAME = "quickweather-cache-2026.07.31.01";
+const CACHE_NAME = "quickweather-cache-2026.07.31.02";
 const APP_FILES = [
   "./",
   "./index.html",

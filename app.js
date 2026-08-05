@@ -1,4 +1,4 @@
-const APP_VERSION = "2026.07.31.02";
+const APP_VERSION = "2026.08.05.01";
 const STORAGE_KEY = "quickweather_v1_1";
 const STALE_AFTER_MS = 10 * 60 * 1000;
 const AIR_STALE_AFTER_MS = 30 * 60 * 1000;
